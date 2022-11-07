@@ -55,10 +55,15 @@ public:
   int num_parameters() const { return num_parameters_; }
   int num_cameras() const { return num_cameras_; }
   const double *observations() const { return observations_; }
+  const double *camera_parameters(int i) {
+    return mutable_cameras() + i * num_cam_params_;
+  }
   double *mutable_cameras() { return parameters_; }
-  double *mutable_points() { return parameters_ + 9 * num_cameras_; }
+  double *mutable_points() {
+    return parameters_ + num_cam_params_ * num_cameras_;
+  }
   double *mutable_camera_for_observation(int i) {
-    return mutable_cameras() + camera_index_[i] * 9;
+    return mutable_cameras() + camera_index_[i] * num_cam_params_;
   }
   double *mutable_point_for_observation(int i) {
     return mutable_points() + point_index_[i] * 3;
@@ -77,7 +82,7 @@ public:
     point_index_ = new int[num_observations_];
     camera_index_ = new int[num_observations_];
     observations_ = new double[2 * num_observations_];
-    num_parameters_ = 9 * num_cameras_ + 3 * num_points_;
+    num_parameters_ = num_cam_params_ * num_cameras_ + 3 * num_points_;
     parameters_ = new double[num_parameters_];
     for (int i = 0; i < num_observations_; ++i) {
       FscanfOrDie(fptr, "%d", camera_index_ + i);
@@ -100,6 +105,7 @@ private:
       LOG(FATAL) << "Invalid UW data file.";
     }
   }
+  int num_cam_params_ = 11;
   int num_cameras_;
   int num_points_;
   int num_observations_;
@@ -133,8 +139,8 @@ struct SnavelyReprojectionError {
     T xp = -p[0] / p[2];
     T yp = -p[1] / p[2];
     // Apply second and fourth order radial distortion.
-    const T &l1 = camera[7];
-    const T &l2 = camera[8];
+    const T &l1 = camera[9];
+    const T &l2 = camera[10];
     T r2 = xp * xp + yp * yp;
     T distortion = 1.0 + r2 * (l1 + l2 * r2);
     // Compute final projected point position.
@@ -150,7 +156,7 @@ struct SnavelyReprojectionError {
   // the client code.
   static ceres::CostFunction *Create(const double observed_x,
                                      const double observed_y) {
-    return (new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 9, 3>(
+    return (new ceres::AutoDiffCostFunction<SnavelyReprojectionError, 2, 11, 3>(
         new SnavelyReprojectionError(observed_x, observed_y)));
   }
   double observed_x;
@@ -172,9 +178,17 @@ void PrintObservations(BALProblem bal_problem) {
     std::cout << "Point " << bal_problem.point_index(i) << std::endl;
     for (int j = 0; j < n_cam; j++) {
       std::cout << "Camera " << bal_problem.camera_index(i + j) << " ";
-      std::cout << observations[2 * i + j + 0] << " "
-                << observations[2 * i + j + 1] << std::endl;
+      std::cout << observations[2 * i + 2 * j + 0] << " "
+                << observations[2 * i + 2 * j + 1] << std::endl;
     }
+  }
+}
+
+void PrintCameras(BALProblem bal_problem) {
+  std::cout << "Cameras:" << std::endl;
+  for (int i = 0; i < bal_problem.num_cameras(); i++) {
+    std::cout << "Cam " << i << std::endl;
+    std::cout << "t: " << bal_problem.camera_parameters(i)[0] << std::endl;
   }
 }
 
@@ -192,6 +206,7 @@ int main(int argc, char **argv) {
   const double *observations = bal_problem.observations();
 
   PrintObservations(bal_problem);
+  PrintCameras(bal_problem);
 
   // Create residuals for each observation in the bundle
   // adjustment problem. The parameters for cameras and points
