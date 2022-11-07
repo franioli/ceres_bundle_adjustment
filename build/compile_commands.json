@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/francesco/ceres_cpp/simple_bba_2/build/src",
+  "command": "/usr/bin/clang++-14 -DGFLAGS_IS_A_DLL=0 -DGOOGLE_GLOG_DLL_DECL=\"\" -DGOOGLE_GLOG_DLL_DECL_FOR_UNITTESTS=\"\" -I/home/francesco/ceres_cpp/simple_bba_2/src -isystem /usr/include/eigen3 -Wall -g -std=gnu++17 -o CMakeFiles/bba.dir/simple_bundle_adjuster.cpp.o -c /home/francesco/ceres_cpp/simple_bba_2/src/simple_bundle_adjuster.cpp",
+  "file": "/home/francesco/ceres_cpp/simple_bba_2/src/simple_bundle_adjuster.cpp"
+}
+]
