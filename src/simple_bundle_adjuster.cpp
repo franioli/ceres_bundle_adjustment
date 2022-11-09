@@ -90,9 +90,9 @@ private:
     num_parameters_ = num_camera_params_ * num_cameras_ + 3 * num_points_;
 
     // Read observations
-    int cam_idx, pt_idx;
-    double x, y;
     for (int i = 0; i < num_observations_; ++i) {
+      int cam_idx, pt_idx;
+      double x, y;
       ifs >> cam_idx >> pt_idx >> x >> y;
       camera_index_.push_back(cam_idx);
       point_index_.push_back(pt_idx);
@@ -101,10 +101,10 @@ private:
     }
 
     // Read Parameters
-    double k;
     for (int i = 0; i < num_parameters_; ++i) {
-      ifs >> k;
-      parameters_.push_back(k);
+      double x;
+      ifs >> x;
+      parameters_.push_back(x);
     }
 
     return true;
